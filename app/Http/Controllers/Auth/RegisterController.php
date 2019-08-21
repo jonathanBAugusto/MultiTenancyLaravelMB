@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\User;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\MigrateRunner;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -64,30 +65,30 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        //Cria novo usuário
         $newUser = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
+        //Aloca uma base de dados para ele e logo armazena seu nome na propriedade <base_name>
         $newUser->base_name = $this->createDataBase($newUser);
+        //Salva o usuario com a propriedade
+        $newUser->save();
+        //roda os métodos necessários para o funcionamento e execução da migration
         $this->runMigrations($newUser->base_name);
-        User::updated($newUser);
         return $newUser;
     }
 
     private function createDataBase($newUser)
     {
+        //Define o nome da Base a ser alocada ao Tenant
         $basename = $newUser->name . $newUser->id;
-        $basename = strtoupper($basename);
-        // $servername = config('envmysql.DB_HOST');
-        // $username = config('envmysql.DB_USERNAME');
-        // $password = config('envmysql.DB_PASSWORD');
+        //seta como lowercase como padrão
+        $basename = strtolower($basename);
         $return = true;
-
-
-
+        //Cria a base ou retorna uma mensagem
         try {
-            // $conn = new PDO("mysql:host=$servername;dbname={$basename}", $username, $password);
             $conn = DB::connection()->getPdo();
             $conn->setAttribute($conn::ATTR_ERRMODE, $conn::ERRMODE_EXCEPTION);
             $sql = "CREATE DATABASE IF NOT EXISTS {$basename}";
@@ -103,6 +104,8 @@ class RegisterController extends Controller
     }
 
     private function runMigrations($basename){
+        //Inicia a clase MigrateRunner,
+        //que contera métodos para trabalhar com migrations na namespace de controllers
         $mRunner = new MigrateRunner();
         $mRunner->createConfig($basename);
         $mRunner->run($basename);
