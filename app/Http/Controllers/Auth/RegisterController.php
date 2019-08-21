@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Config;
 use App\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Controller;
-use Illuminate\Database\Migrations;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -73,6 +70,7 @@ class RegisterController extends Controller
             'password' => Hash::make($data['password']),
         ]);
         $newUser->base_name = $this->createDataBase($newUser);
+        $this->runMigrations($newUser->base_name);
         User::updated($newUser);
         return $newUser;
     }
@@ -84,7 +82,7 @@ class RegisterController extends Controller
         // $servername = config('envmysql.DB_HOST');
         // $username = config('envmysql.DB_USERNAME');
         // $password = config('envmysql.DB_PASSWORD');
-        $return = false;
+        $return = true;
 
 
 
@@ -97,6 +95,7 @@ class RegisterController extends Controller
         } catch (PDOException $e) {
             echo $sql . "" . $e->getMessage();
             $basename = "";
+            $return = false;
         }
         $conn = null;
 
@@ -104,6 +103,8 @@ class RegisterController extends Controller
     }
 
     private function runMigrations($basename){
-
+        $mRunner = new MigrateRunner();
+        $mRunner->createConfig($basename);
+        $mRunner->run($basename);
     }
 }
