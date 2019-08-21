@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Auth\MigrateRunner;
+use App\Http\Controllers\MigrateRunner;
 use DB;
 
 class ProdutosController extends Controller

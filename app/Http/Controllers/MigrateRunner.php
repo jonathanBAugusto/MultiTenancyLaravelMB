@@ -34,6 +34,6 @@ class MigrateRunner
     }
     public function run($base_name)
     {
-        Artisan::call('migrate', ['--database' => $base_name]);
+        Artisan::call('migrate', ['--database' => $base_name, '--path' => '/database/migrations/2019_08_21_184658_create_products_table.php']);
     }
 }
